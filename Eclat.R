@@ -2,7 +2,7 @@
 data <- read.csv("./Data Files/Market_Basket_Optimization.csv",
                  header = FALSE)
 
-# Create Sparsity Matrix from dataset and summarize data
+# Create Sparse Matrix from dataset and summarize data
 library(arules)
 data <- read.transactions("./Data Files/Market_Basket_Optimization.csv",
                           sep = ",",
