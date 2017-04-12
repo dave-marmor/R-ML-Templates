@@ -12,21 +12,20 @@ library(caret)
 scale.values <- preProcess(train.set, method = c("center", "scale"))
 train.set.scaled <- predict(scale.values, train.set)
 test.set.scaled <- predict(scale.values, test.set)
-### Alternative method
+
+# Alternative method to scale data
 ScaleData <- function(train, test) {
-  num_col <- which(lapply(train, class) %in% c("integer", "numeric"))
-  col <- train[num_col]
+  num.cols <- which(lapply(train, class) %in% c("integer", "numeric"))
+  col <- train[num.cols]
   means <- apply(col, 2, function(x) mean(x, na.rm = TRUE))
   sds <- apply(col, 2, function(x) sd(x, na.rm = TRUE))
-  for (i in 1:ncol(col)) {
-    train[num_col[i]] <- (train[num_col[i]] - means[i]) / sds[i]
-    test[num_col[i]] <- (test[num_col[i]] - means[i]) / sds[i]
-  }
-  list(scaled_train = train, scaled_test = test)
+  train[, num.cols] <- t((t(col)-means) / sds)
+  test[, num.cols] <- t((t(test[, num.cols])-means) / sds)
+  list(train = train, test = test)
 }
 scaled.data <- ScaleData(train.set, test.set)
-train.set.scaled1 <- scaled.data$scaled_train
-test.set.scaled1 <- scaled.data$scaled_test
+train.scaled <- scaled.data$train
+test.scaled <- scaled.data$test
 
 # Identify Missing Data
 apply(data, 2, function(x) sum(is.na(x)))  # Identify Columns
@@ -53,4 +52,3 @@ contrasts(data$Purchased)
 
 # Convert Factors to Numeric (0/1 binary)
 data$Purchased <- as.numeric(data$Purchased)-1
-
