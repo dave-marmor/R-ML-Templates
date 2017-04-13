@@ -19,13 +19,13 @@ svm.model <- svm(formula = Purchased ~ Age + EstimatedSalary,
                  type = "C-classification",  # For regression problems (see SVR)
                  kernel = "linear")  # Can change to "polynomial", "radial", or "sigmoid"
 ## Method 2: Use a Matrix to reduce load
-library(Matrix)
-train.x <- model.matrix(Purchased ~ . -1, data = train.set)
-train.y <- train.set$Purchased
-test.x <- model.matrix(Purchased ~ . -1, data = test.set)
-test.y <- test.set$Purchased
-svm.model <- svm(x = train.x,
-                 y = train.y,
+library(e1071)
+X.train <- model.matrix(Purchased ~ . -1, data = train.set)
+y.train <- train.set$Purchased
+X.test <- model.matrix(Purchased ~ . -1, data = test.set)
+y.test <- test.set$Purchased
+svm.model <- svm(x = X.train,
+                 y = y.train,
                  scale = TRUE,  # Assumes the data was not scaled ahead of time
                  type = "C-classification",  # For regression problems (see SVR)
                  kernel = "linear")  # Can change to "polynomial", "radial", or "sigmoid"
@@ -37,7 +37,7 @@ pred.summary <- test.set
 pred.summary$y.pred <- y.pred
 head(pred.summary)
 ## Using Method 2 (from above)
-y.pred <- predict(svm.model, newdata = test.x)  # Do not pre-scale test data
+y.pred <- predict(svm.model, newdata = X.test)  # Do not pre-scale test data
 pred.summary <- test.set
 pred.summary$y.pred <- y.pred
 head(pred.summary)

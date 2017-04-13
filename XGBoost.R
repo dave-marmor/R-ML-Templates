@@ -13,24 +13,24 @@ y <- as.numeric(data$Exited) - 1  # To convert to 0/1 format
 # Partition the data into train and test sets
 set.seed(1111)
 split <- sample(1:nrow(x), .80 * nrow(x))
-train.x <- X[split, ]
-test.x <- X[-split, ]
-train.y <- y[split]
-test.y <- y[-split]
+X.train <- X[split, ]
+X.test <- X[-split, ]
+y.train <- y[split]
+y.test <- y[-split]
 
 #### No need to scale data ahead of time
 
 # Create XGBoost Model
 library(xgboost)
 set.seed(2222)
-xgb.model <- xgboost(data = train.x, 
-                     label = train.y, 
+xgb.model <- xgboost(data = X.train, 
+                     label = y.train,
                      nrounds = 10,
                      objective = "binary:logistic")
 
 # Predict on the test data
 y.prob <- predict(xgb.model, 
-                  newdata = test.x)
+                  newdata = X.test)
 y.pred <- ifelse(y.prob >= .5, 1, 0)
 pred.summary <- data[-split, ]
 pred.summary$y.pred <- y.pred
