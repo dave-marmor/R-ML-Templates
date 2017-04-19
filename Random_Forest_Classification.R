@@ -1,8 +1,8 @@
 # Import the dataset
-data <- read.csv("./Data Files/Social_Network_Ads.csv")
+data <- read.csv("./Data Files/loan_data.csv")
 
 # Convert the dependent variable into a factor
-data$Purchased <- as.factor(as.character(data$Purchased))
+data$not.fully.paid <- as.factor(as.character(data$not.fully.paid))
 
 # Set the seed
 set.seed(1111)
@@ -16,13 +16,27 @@ test.set <- data[-split, ]
 ## Method 1
 library(randomForest)
 set.seed(2222)
-rf.tree <- randomForest(formula = Purchased ~ Age + EstimatedSalary,
+rf.tree <- randomForest(formula = not.fully.paid ~ .,
                         data = train.set,
-                        ntree = 100) # Tune this number
-## Method 2 (sometimes this works better with NLP)
-rf.tree <- randomForest(x = train.set[-5],
-                        y = train.set$Purchased,
-                        ntree = 100) # Tune this number
+                        ntree = 100)  # Tune this number
+## Method 2 (sometimes this works better)
+library(dplyr)
+X.train <- select(train.set, -not.fully.paid)
+y.train <- train.set$not.fully.paid
+X.test <- select(test.set, -not.fully.paid)
+y.test <- test.set$not.fully.paid
+set.seed(2222)
+rf.tree <- randomForest(x = X.train,
+                        y = y.train,
+                        ntree = 100)  # Tune this number
+
+library(dplyr)
+feat.imp <- data.frame(Variable = rownames(rf.tree$importance),
+                       MeanDecreaseGini = rf.tree$importance,
+                       row.names = NULL) %>%
+  mutate(Importance = round(MeanDecreaseGini/sum(rf.tree$importance), 4)) %>%
+  arrange(desc(MeanDecreaseGini))
+feat.imp
 
 # Predict on the test data
 y.pred <- predict(rf.tree, newdata = test.set)

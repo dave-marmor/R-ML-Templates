@@ -1,40 +1,53 @@
-# Import the dataset
-data <- read.csv("./Data Files/Position_Salaries.csv")
-
-# Subset data so that only the dependent and independent variables remain
-data <- data[, 2:3]
-
-# Set the seed
-set.seed(1111)
+# Import the dataset & load the rpart package
+library(dplyr)
+data <- read.csv("./Data Files/USA_Housing.csv")
+data <- select(data, -Address)
 
 # Partition the data into train and test sets
-split <- sample(1:nrow(data), .80 * nrow(data))  # Method 1
+set.seed(1111)
+split <- sample(1:nrow(data), .80 * nrow(data))
 train.set <- data[split, ]
 test.set <- data[-split, ]
+y.test <- test.set$Price
 
 # Create decision tree regression model
 ## Method 1
 library(randomForest)
-set.seed(1)
-reg.tree <- randomForest(formula = Salary ~ Level, 
+set.seed(1111)
+rfr.tree <- randomForest(formula = Price ~ ., 
                          data = train.set, 
                          ntree = 100)  # Pick a big number
 ## Method 2
-X.train <- train.set[1]  # Split the data into an x matrix and y vector
-y.train <- train.set$Salary
-X.test <- test.set[1]
-y.test <- test.set$Salary
+X.train <- select(train.set, -Price)
+y.train <- train.set$Price
+X.test <- select(test.set, -Price)
+y.test <- test.set$Price
 set.seed(1111)
-reg.tree <- randomForest(x = X.train,
+rfr.tree <- randomForest(x = X.train,
                          y = y.train,
                          ntree = 100)  # Pick a big number
 
+library(dplyr)
+feat.imp <- data.frame(Variable = rownames(rfr.tree$importance),
+                       IncNodePurity = rfr.tree$importance,
+                       row.names = NULL) %>%
+  mutate(Importance = round(IncNodePurity/sum(rfr.tree$importance), 4)) %>%
+  arrange(desc(IncNodePurity))
+feat.imp
+
 # Predict on the test data
-y.pred <- predict(reg.tree, newdata = test.set)
+y.pred <- predict(rfr.tree, newdata = test.set)
 pred.summary <- test.set
 pred.summary$y.pred <- y.pred
 head(pred.summary)
 
+# Evaluate the model on the test data
+mse <- mean((y.test - y.pred)^2)
+rmse <- sqrt(mse)
+var_explained = 1 - (sum((y.test - y.pred)^2) / 
+                       (sum((y.test - mean(y.test))^2)))
+data.frame(Score_Metric = c("MSE", "RMSE", "Var_Explained"),
+           Measure = c(mse, rmse, var_explained))
 
 
 # Visual representation (only works for 1 predictor)

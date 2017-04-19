@@ -1,13 +1,11 @@
 # Import the dataset
 data <- read.csv("./Data Files/Social_Network_Ads.csv")
 
-# Set the seed
-set.seed(1111)
-
 # Convert the dependent variable into a factor
 data$Purchased <- as.factor(as.character(data$Purchased))
 
 # Partition the data into train and test sets
+set.seed(1111)
 split <- sample(1:nrow(data), .75 * nrow(data))
 train.set <- data[split, ]
 test.set <- data[-split, ]
@@ -17,8 +15,10 @@ library(rpart)
 tree <- rpart(formula = Purchased ~ Age + EstimatedSalary,
               data = train.set)
 
+tree$variable.importance
+
 # Predict on the test data
-y.prob <- predict(tree, newdata = test.set)  # This gives the probabilities
+y.prob <- predict(tree, newdata = test.set)
 y.pred <- predict(tree, newdata = test.set, type = "class")
 pred.summary <- test.set
 pred.summary$y.prob <- round(y.prob[, 2], 2)
